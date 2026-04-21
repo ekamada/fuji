@@ -7,12 +7,16 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 struct Args {
 
-    #[arg(short, long, default_value_t=String::from(""))]
-    add : String,
+    // #[arg(short, long, default_value_t=String::from(""))]
+    // add : String,
+    #[arg(short, long)]
+    add : bool,
 
     #[arg(short, long)]
     list : bool
 }
+
+
 
 fn main() -> Result<()> {
     println!("Hello, world!");
@@ -26,6 +30,10 @@ fn main() -> Result<()> {
     if args.list {
         println!("Listing tasks");
         fuji.list_tasks();
+    }
+
+    if args.add {
+        fuji.dummy_add();
     }
 
 
