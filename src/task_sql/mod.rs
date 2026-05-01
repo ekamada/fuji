@@ -1,7 +1,6 @@
 
 // use rusqlite::{Connection,Result};
 use rusqlite::{Connection, params};
-
 const TASK_DB : &str = "tasklist";
 
 pub struct FujiTasks {
@@ -78,6 +77,12 @@ impl FujiTasks {
 
         self.conn.execute(&*cmd_str, params![new_id, name, descr, "Open", "N/A", "-"]).unwrap();
 
+    }
+
+    pub fn del_task(&self, id: i32) {
+        let cmd_str = format!("delete from {TASK_DB} where ID = ?1");
+
+        self.conn.execute(&*cmd_str, params![id]).unwrap();
     }
 
     pub fn dummy_add(&self) {

@@ -12,8 +12,12 @@ struct Args {
     #[arg(short, long)]
     add : bool,
 
+    #[arg(short, long, default_value_t = 0)]
+    del  : i32,
+
     #[arg(short, long)]
     list : bool
+
 }
 
 
@@ -36,6 +40,9 @@ fn main() -> Result<()> {
         fuji.dummy_add();
     }
 
+    if args.del != 0 {
+        fuji.del_task(args.del);
+    }
 
 
     Ok(())
