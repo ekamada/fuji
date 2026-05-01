@@ -44,7 +44,6 @@ impl FujiTasks {
         let mut rows = stmt.query([]).unwrap();
 
         while let Some(row) = rows.next().unwrap() {
-            // let test : i32 = row.get(0).unwrap();
             let data = FujiData {
                 id        : row.get(0).unwrap(),
                 name      : row.get(1).unwrap(),
@@ -73,10 +72,11 @@ impl FujiTasks {
     }
 
     pub fn add_task(&self, name : String, descr : String ) {
-        println!("Helloo World");
+        let new_id = self.num_tasks()+1;
+        let cmd_str = format!("insert into {TASK_DB} values (?1, ?2, ?3, ?4, ?5, ?6)");
+        println!("New Task ID: {new_id}");
 
-        let _ = self.conn.execute("INSERT INTO tasklist values (?1, ?2, ?3 ?4, ?5 ?6)", 
-            params![self.num_tasks(), name, descr, "Open", "N/A", "-"]);
+        self.conn.execute(&*cmd_str, params![new_id, name, descr, "Open", "N/A", "-"]).unwrap();
 
     }
 
