@@ -10,7 +10,6 @@ pub struct FujiTasks {
 pub struct FujiData {
     id        : i32,
     name      : String,
-    desc      : String,
     status    : String,
     created   : String,
     completed : String,
@@ -25,7 +24,6 @@ impl FujiTasks {
             create table if not exists {TASK_DB} (
                 ID          INT PRIMARY KEY NOT NULL,
                 NAME        Text            NOT NULL,
-                DESC        Text            NOT NULL,
                 STATUS      Text            NOT NULL,
                 CREATED     Text            NOT NULL,
                 COMPLETED   Text            NOT NULL
@@ -46,12 +44,11 @@ impl FujiTasks {
             let data = FujiData {
                 id        : row.get(0).unwrap(),
                 name      : row.get(1).unwrap(),
-                desc      : row.get(2).unwrap(),
-                status    : row.get(3).unwrap(),
-                created   : row.get(4).unwrap(),
-                completed : row.get(5).unwrap(),
+                status    : row.get(2).unwrap(),
+                created   : row.get(3).unwrap(),
+                completed : row.get(4).unwrap(),
             };
-            println!("{} {} {} {} ", data.id, data.name, data.desc, data.status);
+            println!("{} {} {} ", data.id, data.name, data.status);
         }
         let count = self.num_tasks();
         println!("\n{}", count)
@@ -70,12 +67,12 @@ impl FujiTasks {
         }
     }
 
-    pub fn add_task(&self, name : String, descr : String ) {
+    pub fn add_task(&self, name : String) {
         let new_id = self.num_tasks()+1;
-        let cmd_str = format!("insert into {TASK_DB} values (?1, ?2, ?3, ?4, ?5, ?6)");
+        let cmd_str = format!("insert into {TASK_DB} values (?1, ?2, ?3, ?4, ?5)");
         println!("New Task ID: {new_id}");
 
-        self.conn.execute(&*cmd_str, params![new_id, name, descr, "Open", "N/A", "-"]).unwrap();
+        self.conn.execute(&*cmd_str, params![new_id, name, "Open", "N/A", "-"]).unwrap();
 
     }
 
@@ -87,9 +84,8 @@ impl FujiTasks {
 
     pub fn dummy_add(&self) {
         let name  :String = String::from("Dummy Task");
-        let descr :String = String::from("Fake Description");
 
-        self.add_task(name, descr);
+        self.add_task(name);
 
     }
 }
