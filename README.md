@@ -18,6 +18,6 @@ The easiest way to do this is not through cargo test. Instead, I would recommend
 running cargo build, then executing the application with the desired arguments:
 
 ```
-    /debug/target/fuji -[arg]
+    ./target/debug/fuji -[arg]
 ```
 
