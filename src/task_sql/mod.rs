@@ -1,6 +1,9 @@
 
+use std::{fmt, string};
+
 // use rusqlite::{Connection,Result};
 use rusqlite::{Connection, params};
+use pad::PadStr;
 const TASK_DB : &str = "tasklist";
 
 pub struct FujiTasks {
@@ -16,6 +19,17 @@ pub struct FujiData {
 
 }
 
+impl fmt::Display for FujiData {
+    fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let id_str = self.id.to_string().pad_to_width(3);
+        let name_str = self.name.pad_to_width(20);
+        let stat_str = self.status.pad_to_width(8);
+        let start_str = self.created.pad_to_width(25);
+        
+
+        write!(f, " {}| {}| {}| {}", id_str, name_str, stat_str, start_str)
+    }
+}
 
 impl FujiTasks {
     pub fn new() -> FujiTasks {
@@ -48,7 +62,8 @@ impl FujiTasks {
                 created   : row.get(3).unwrap(),
                 completed : row.get(4).unwrap(),
             };
-            println!("{} {} {} ", data.id, data.name, data.status);
+            // println!("{} {} {} ", data.id, data.name, data.status);
+            println!("{}",data);
         }
         let count = self.num_tasks();
         println!("\n{}", count)
