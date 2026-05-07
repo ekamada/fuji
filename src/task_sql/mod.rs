@@ -1,9 +1,10 @@
 
-use std::{fmt, string};
+use std::fmt;
 
 // use rusqlite::{Connection,Result};
 use rusqlite::{Connection, params};
 use pad::PadStr;
+use chrono::prelude::*;
 const TASK_DB : &str = "tasklist";
 
 pub struct FujiTasks {
@@ -84,10 +85,12 @@ impl FujiTasks {
 
     pub fn add_task(&self, name : String) {
         let new_id = self.num_tasks()+1;
+        let local : DateTime<Local> = Local::now();
+        let date_str = local.format("%d-%m-%Y").to_string();
         let cmd_str = format!("insert into {TASK_DB} values (?1, ?2, ?3, ?4, ?5)");
         println!("New Task ID: {new_id}");
 
-        self.conn.execute(&*cmd_str, params![new_id, name, "Open", "N/A", "-"]).unwrap();
+        self.conn.execute(&*cmd_str, params![new_id, name, "Open", date_str, "-"]).unwrap();
 
     }
 
