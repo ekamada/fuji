@@ -37,7 +37,8 @@ fn main() -> Result<()> {
     }
 
     if args.add {
-        fuji.dummy_add();
+        // fuji.dummy_add();
+        fuji.add_task();
     }
 
     if args.del != 0 {

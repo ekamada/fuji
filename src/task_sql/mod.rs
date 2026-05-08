@@ -1,5 +1,5 @@
 
-use std::fmt;
+use std::{fmt,io};
 
 // use rusqlite::{Connection,Result};
 use rusqlite::{Connection, params};
@@ -67,11 +67,20 @@ impl FujiTasks {
             println!("{}",data);
         }
         let count = self.num_tasks();
-        println!("\n{}", count)
+        println!("\nNumber of Tasks: {}", count)
     }
 
     fn num_tasks(&self) ->i32 {
         let cmd_str = format!("select count(*) from {TASK_DB}");
+        self.get_single_int(cmd_str)
+    }
+
+    fn get_max(&self) -> i32 {
+        let cmd_str = format!("select MAX(ID) from {TASK_DB}");
+        self.get_single_int(cmd_str)
+    }
+
+    fn get_single_int(&self, cmd_str: String) -> i32 {
         let mut stmt = self.conn.prepare(&cmd_str).unwrap();
         let mut query_data = stmt.query([]).unwrap();
 
@@ -83,14 +92,19 @@ impl FujiTasks {
         }
     }
 
-    pub fn add_task(&self, name : String) {
-        let new_id = self.num_tasks()+1;
+    pub fn add_task(&self) {
+        let new_id = self.get_max()+1;
         let local : DateTime<Local> = Local::now();
         let date_str = local.format("%d-%m-%Y").to_string();
         let cmd_str = format!("insert into {TASK_DB} values (?1, ?2, ?3, ?4, ?5)");
-        println!("New Task ID: {new_id}");
 
-        self.conn.execute(&*cmd_str, params![new_id, name, "Open", date_str, "-"]).unwrap();
+        println!("Enter a name for your new task: ");
+        let mut name_str = String::new();
+        io::stdin().read_line(&mut name_str).unwrap();
+
+        self.conn.execute(&*cmd_str, params![new_id, name_str.trim(), "Open", date_str, "-"]).unwrap();
+
+        println!("\nNew Task ID: {new_id}");
 
     }
 
@@ -98,13 +112,6 @@ impl FujiTasks {
         let cmd_str = format!("delete from {TASK_DB} where ID = ?1");
 
         self.conn.execute(&*cmd_str, params![id]).unwrap();
-    }
-
-    pub fn dummy_add(&self) {
-        let name  :String = String::from("Dummy Task");
-
-        self.add_task(name);
-
     }
 }
 
