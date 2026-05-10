@@ -1,8 +1,8 @@
 
 use std::{fmt,io};
 
-// use rusqlite::{Connection,Result};
 use rusqlite::{Connection, params};
+use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 use pad::PadStr;
 use chrono::prelude::*;
 const TASK_DB : &str = "tasklist";
@@ -14,17 +14,55 @@ pub struct FujiTasks {
 pub struct FujiData {
     id        : i32,
     name      : String,
-    status    : String,
+    status    : FujiStatus,
     created   : String,
     completed : String,
 
+}
+
+#[derive(Clone, Copy)]
+enum FujiStatus {
+    Open,
+    Closed
+}
+
+impl fmt::Display for FujiStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let output_str = match &self {
+            Self::Open => "Open",
+            Self::Closed => "Closed"
+        };
+        write!(f, "{output_str}")
+    }
+}
+
+
+impl ToSql for FujiStatus {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+        let value = match &self {
+            FujiStatus::Open => "Open",
+            FujiStatus::Closed => "Closed"
+        };
+        Ok(value.into())
+    }
+}
+
+impl FromSql for FujiStatus {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let value_str = value.as_str().unwrap();
+        match value_str {
+            "Open"   => Ok(FujiStatus::Open),
+            "Closed" => Ok(FujiStatus::Closed),
+            _ => Err(FromSqlError::InvalidType)
+        }
+    } 
 }
 
 impl fmt::Display for FujiData {
     fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result {
         let id_str = self.id.to_string().pad_to_width(3);
         let name_str = self.name.pad_to_width(20);
-        let stat_str = self.status.pad_to_width(8);
+        let stat_str = self.status.to_string().pad_to_width(8);
         let start_str = self.created.pad_to_width(25);
         
 
@@ -63,7 +101,6 @@ impl FujiTasks {
                 created   : row.get(3).unwrap(),
                 completed : row.get(4).unwrap(),
             };
-            // println!("{} {} {} ", data.id, data.name, data.status);
             println!("{}",data);
         }
         let count = self.num_tasks();
@@ -76,8 +113,13 @@ impl FujiTasks {
     }
 
     fn get_max(&self) -> i32 {
-        let cmd_str = format!("select MAX(ID) from {TASK_DB}");
-        self.get_single_int(cmd_str)
+        let num_tasks = self.num_tasks();
+        if num_tasks>0 {
+            let cmd_str = format!("select MAX(ID) from {TASK_DB}");
+            self.get_single_int(cmd_str)
+        } else {
+            0
+        }
     }
 
     fn get_single_int(&self, cmd_str: String) -> i32 {
