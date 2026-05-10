@@ -1,10 +1,14 @@
 
+pub mod fuji_status;
+use fuji_status::FujiStatus;
+
 use std::{fmt,io};
 
 use rusqlite::{Connection, params};
-use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
 use pad::PadStr;
 use chrono::prelude::*;
+
+
 const TASK_DB : &str = "tasklist";
 
 pub struct FujiTasks {
@@ -20,51 +24,12 @@ pub struct FujiData {
 
 }
 
-#[derive(Clone, Copy)]
-enum FujiStatus {
-    Open,
-    Closed
-}
-
-impl fmt::Display for FujiStatus {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let output_str = match &self {
-            Self::Open => "Open",
-            Self::Closed => "Closed"
-        };
-        write!(f, "{output_str}")
-    }
-}
-
-
-impl ToSql for FujiStatus {
-    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
-        let value = match &self {
-            FujiStatus::Open => "Open",
-            FujiStatus::Closed => "Closed"
-        };
-        Ok(value.into())
-    }
-}
-
-impl FromSql for FujiStatus {
-    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
-        let value_str = value.as_str().unwrap();
-        match value_str {
-            "Open"   => Ok(FujiStatus::Open),
-            "Closed" => Ok(FujiStatus::Closed),
-            _ => Err(FromSqlError::InvalidType)
-        }
-    } 
-}
-
 impl fmt::Display for FujiData {
     fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result {
         let id_str = self.id.to_string().pad_to_width(3);
         let name_str = self.name.pad_to_width(20);
         let stat_str = self.status.to_string().pad_to_width(8);
         let start_str = self.created.pad_to_width(25);
-        
 
         write!(f, " {}| {}| {}| {}", id_str, name_str, stat_str, start_str)
     }
@@ -147,7 +112,10 @@ impl FujiTasks {
         self.conn.execute(&*cmd_str, params![new_id, name_str.trim(), "Open", date_str, "-"]).unwrap();
 
         println!("\nNew Task ID: {new_id}");
+    }
 
+    pub fn close_task(&self) {
+        println!("Closing Task!")
     }
 
     pub fn del_task(&self, id: i32) {

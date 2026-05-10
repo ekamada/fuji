@@ -15,6 +15,9 @@ struct Args {
     #[arg(short, long, default_value_t = 0)]
     del  : i32,
 
+    #[arg(short, long, default_value_t = 0)]
+    close : i32,
+
     #[arg(short, long)]
     list : bool
 
@@ -43,6 +46,11 @@ fn main() -> Result<()> {
 
     if args.del != 0 {
         fuji.del_task(args.del);
+    }
+
+    if args.close != 0 {
+        fuji.close_task();
+
     }
 
 
