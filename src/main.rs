@@ -49,7 +49,7 @@ fn main() -> Result<()> {
     }
 
     if args.close != 0 {
-        fuji.close_task();
+        fuji.close_task(args.close);
 
     }
 

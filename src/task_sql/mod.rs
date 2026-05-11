@@ -114,8 +114,12 @@ impl FujiTasks {
         println!("\nNew Task ID: {new_id}");
     }
 
-    pub fn close_task(&self) {
-        println!("Closing Task!")
+    pub fn close_task(&self, id: i32) {
+        println!("Closing Task!");
+        let cmd_str = format!("update {TASK_DB} set status = ?1 where id = ?2");
+        // let mut stmt = self.conn.prepare(&cmd_str).unwrap();
+        self.conn.execute(&*cmd_str, params![FujiStatus::Closed,id]).unwrap();
+
     }
 
     pub fn del_task(&self, id: i32) {
