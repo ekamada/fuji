@@ -20,8 +20,8 @@ between instances.
 ## Commmand Line Arguments
 - List
 - Add 
-- Delete
-- Close
+- Delete [#] 
+- Close [#]
 
 ## Testing Command Line Arguments
 The easiest way to do this is not through cargo test. Instead, I would recommend
@@ -31,3 +31,9 @@ running cargo build, then executing the application with the desired arguments:
     ./target/debug/fuji -[arg]
 ```
 
+
+## Plans for growth
+- Test assertions
+- stats history
+- Better interactive environment
+- report if ID doesn't exist when deleting or closing
