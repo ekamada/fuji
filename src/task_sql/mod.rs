@@ -2,7 +2,7 @@
 pub mod fuji_status;
 use fuji_status::FujiStatus;
 
-use std::{fmt,io};
+use std::{fmt,io::{self, Write}};
 
 use rusqlite::{Connection, params};
 use pad::PadStr;
@@ -29,9 +29,10 @@ impl fmt::Display for FujiData {
         let id_str = self.id.to_string().pad_to_width(3);
         let name_str = self.name.pad_to_width(20);
         let stat_str = self.status.to_string().pad_to_width(8);
-        let start_str = self.created.pad_to_width(25);
+        let start_str = self.created.pad_to_width(15);
+        let complete_str = self.completed.pad_to_width(15);
 
-        write!(f, " {}| {}| {}| {}", id_str, name_str, stat_str, start_str)
+        write!(f, " {}| {}| {}| {}| {}", id_str, name_str, stat_str, start_str, complete_str)
     }
 }
 
@@ -101,11 +102,16 @@ impl FujiTasks {
 
     pub fn add_task(&self) {
         let new_id = self.get_max()+1;
-        let local : DateTime<Local> = Local::now();
-        let date_str = local.format("%d-%m-%Y").to_string();
+        let local_time : DateTime<Local> = Local::now();
+        let date_str = local_time.format("%d-%m-%Y").to_string();
         let cmd_str = format!("insert into {TASK_DB} values (?1, ?2, ?3, ?4, ?5)");
 
-        println!("Enter a name for your new task: ");
+        // print!() needs to be followed by stdout flush as it may not appear if a \n is not
+        // inlcuded in the string. This is important as we want to enter our text on the same line
+        // as our prompt.
+        print!("Enter a name for your new task: ");
+        io::stdout().flush().expect("Failed to flush stdout");
+        
         let mut name_str = String::new();
         io::stdin().read_line(&mut name_str).unwrap();
 
@@ -116,9 +122,12 @@ impl FujiTasks {
 
     pub fn close_task(&self, id: i32) {
         println!("Closing Task!");
-        let cmd_str = format!("update {TASK_DB} set status = ?1 where id = ?2");
-        // let mut stmt = self.conn.prepare(&cmd_str).unwrap();
-        self.conn.execute(&*cmd_str, params![FujiStatus::Closed,id]).unwrap();
+        let status_cmd = format!("update {TASK_DB} set status = ?1 where id = ?2");
+        let local_time : DateTime<Local> = Local::now();
+        let date_str = local_time.format("%d-%m-%Y").to_string();
+        let date_cmd = format!("update {TASK_DB} set completed = ?1 where id = ?2");
+        self.conn.execute(&*status_cmd, params![FujiStatus::Closed,id]).unwrap();
+        self.conn.execute(&*&date_cmd, params![date_str,id]).unwrap();
 
     }
 
